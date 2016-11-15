@@ -56,6 +56,7 @@ static void *lift_thread(void *unused)
 {
 	while(1){
 		// Move lift one floor
+
 	}
 	return NULL;
 }
@@ -78,6 +79,15 @@ static void *passenger_thread(void *idptr)
 		// * Select random floors
 		// * Travel between these floors
 		// * Wait a little while
+		int change_direction = 0;
+		int random_floor = get_random_value(0,N_FLOORS);
+		if((Lift->floor == 0) || (Lift->floor == N_FLOORS-1))
+		{
+				change_direction = 1;
+		}
+		lift_move(Lift, random_floor, change_direction);
+		usleep(50000);
+
 	}
 	return NULL;
 }
@@ -85,11 +95,11 @@ static void *passenger_thread(void *idptr)
 static void *user_thread(void *unused)
 {
 	int current_passenger_id = 0;
-	char message[SI_UI_MAX_MESSAGE_SIZE]; 
+	char message[SI_UI_MAX_MESSAGE_SIZE];
 
-	si_ui_set_size(670, 700); 
+	si_ui_set_size(670, 700);
 	prctl(PR_SET_NAME,"User Thread",0,0,0); // Sets the name shown in debuggers for this thread
-	
+
 	while(1){
 		// Read a message from the GUI
 		si_ui_receive(message);
@@ -99,6 +109,10 @@ static void *user_thread(void *unused)
 			// message if too many passengers have been
 			// created. Make sure that each passenger gets
 			// a unique ID between 0 and MAX_N_PERSONS-1.
+			static person_type person1;
+			*passenger_thread(person1->id);
+
+
 		}else if(!strcmp(message, "exit")){
 			lift_delete(Lift);
 			exit(0);
@@ -113,9 +127,20 @@ int main(int argc, char **argv)
 	si_ui_init();
 	init_random();
 	Lift = lift_create();
+	pthread_t user_thread_handle;
+	pthread_t passenger_thread_handle;
+	pthread_t lift_thread_handle;
+
+	pthread_create(&user_thread_handle, NULL, user_thread,0);
+	pthread_create(&passenger_thread_handle, NULL, passenger_thread,0);
+	pthread_create(&lift_thread_handle, NULL, lift_thread,0);
+
+	pthread_join(user_thread_handle, NULL);
+	pthread_detach(passenger_thread_handle, NULL);
+	pthread_join(lift_thread_handle, NULL);
 
         // Create tasks as appropriate here
-	
+
 
 	return 0;
 }
