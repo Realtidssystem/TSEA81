@@ -95,11 +95,11 @@ void lift_delete(lift_type lift)
 /* MONITOR function lift_next_floor: computes the floor to which the lift
    shall travel. The parameter *change_direction indicates if the direction
    shall be changed */
-void lift_next_floor(lift_type lift, int *next_floor, int *change_direction)
+/*void lift_next_floor(lift_type lift, int *next_floor, int *change_direction)
 {
 
 }
-
+*/
 void lift_move(lift_type lift, int next_floor, int change_direction)
 {
     /* reserve lift */
@@ -158,6 +158,9 @@ static int n_passengers_in_lift(lift_type lift)
    shall move again. */
 void lift_has_arrived(lift_type lift)
 {
+  pthread_mutex_lock(&lift->mutex)
+  lift->moving = 0;
+  pthread_mutex_unlock(&lift->mutex);
 }
 
 /* --- functions related to lift task END --- */
@@ -245,6 +248,12 @@ static void leave_floor(
    starting at from_floor, and ending at to_floor */
 void lift_travel(lift_type lift, int id, int from_floor, int to_floor)
 {
+  leave_floor(lift, id, from_floor);
+  lift->passengers_in_lift[id].id = 1;
+  if(lift->floor == to_floor){
+
+  }
+
 }
 
 /* --- functions related to person task END --- */
