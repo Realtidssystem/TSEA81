@@ -95,11 +95,20 @@ void lift_delete(lift_type lift)
 /* MONITOR function lift_next_floor: computes the floor to which the lift
    shall travel. The parameter *change_direction indicates if the direction
    shall be changed */
-/*void lift_next_floor(lift_type lift, int *next_floor, int *change_direction)
+void lift_next_floor(lift_type lift, int *next_floor, int *change_direction)
 {
-
+  if(lift->up){
+    &next_floor = lift->floor -1;
+  }
+  else{
+    &next_floor = lift->floor +1;
+  }
+  if((lift->floor == 0) || (lift->floor == N_FLOORS-1))
+  {
+      &change_direction = 1;
+  }
 }
-*/
+
 void lift_move(lift_type lift, int next_floor, int change_direction)
 {
     /* reserve lift */
@@ -248,9 +257,11 @@ static void leave_floor(
    starting at from_floor, and ending at to_floor */
 void lift_travel(lift_type lift, int id, int from_floor, int to_floor)
 {
+  if(!passenger_wait_for_lift(lift,from_floor)){
+    enter_floor(lift,id,to_floor);
+  }
   leave_floor(lift, id, from_floor);
-  lift->passengers_in_lift[id].id = 1;
-  if(lift->floor == to_floor){
+
 
   }
 

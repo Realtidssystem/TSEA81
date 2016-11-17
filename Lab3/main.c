@@ -9,6 +9,9 @@
 #include "si_ui.h"
 #include "debug.h"
 
+sem_t make_thread;
+
+
 // Unfortunately the rand() function is not thread-safe. However, the
 // rand_r() function is thread-safe, but need a pointer to an int to
 // store the current state of the pseudo-random generator.  This
@@ -56,17 +59,8 @@ static void *lift_thread(void *unused)
 	while(1){
 		// Move lift one floor
 		int next_floor;
-		int change_direction = 0;
-		if(Lift->up){
-			next_floor = Lift->floor -1;
-		}
-		else{
-			next_floor = Lift->floor +1;
-		}
-		if((Lift->floor == 0) || (Lift->floor == N_FLOORS-1))
-		{
-				change_direction = 1;
-		}
+		int change_direction;
+		lift_next_floor(lift_type lift, int *next_floor, int *change_direction);
 		lift_move(Lift, next_floor, change_direction);
 		lift_has_arrived(Lift);
 
@@ -82,12 +76,8 @@ static void *passenger_thread(void *idptr)
 
 	int *tmp = (int *) idptr;
 	int id = *tmp;
-	static person_data_type person;
-	person->id = id;
-  get_random_value(id,N_FLOORS)= random_origin;
-	person->to_floor = random_origin;
-	random_to = get_random_value(id,N_FLOORS);
-	person->to_floor = random_to;
+	sem_post(&make_thread);
+
 	lift->persons_to_enter[random_origin][id].id = id;
 
         // Sets a unique name shown in debuggers
@@ -96,13 +86,15 @@ static void *passenger_thread(void *idptr)
 	prctl(PR_SET_NAME,buf,0,0,0);
 
 	while(1){
+		int random_origin = get_random_value(id,N_FLOORS);
+		int random_to = get_random_value(id,N_FLOORS);
 		// * Select random floors
 		// * Travel between these floors
 		// * Wait a little while
-		int change_direction = 0;
-		int random_floor = get_random_value(0,N_FLOORS);
-
-		lift_travel(Lift, id, Lift->floor, random_to);
+		while(random_origin==random_to){
+			random_to = get_random_value(id,N_FLOORS);
+		}
+		lift_travel(Lift, id, random_origin, random_to);
 		usleep(50000);
 
 	}
@@ -121,12 +113,22 @@ static void *user_thread(void *unused)
 		// Read a message from the GUI
 		si_ui_receive(message);
 		if(!strcmp(message, "new")){
+			current_passenger_id
 			// create a new passenger if possible, else
 			// use si_ui_show_error() to show an error
 			// message if too many passengers have been
 			// created. Make sure that each passenger gets
 			// a unique ID between 0 and MAX_N_PERSONS-1.
-			passenger_handle();
+			pthread_t passenger_thread_handle;
+			if(current_passenger_id < MAX_N_PERSONS){
+				pthread_create(&passenger_thread_handle, NULL, passenger_thread,(void*)current_passenger_id);
+				pthread_detach(passenger_thread, NULL);
+				sem_wait(&make_thread);
+				current_passenger_id++;
+			}
+			else {
+				si_ui_show_error();
+			}
 
 
 		}else if(!strcmp(message, "exit")){
@@ -137,23 +139,11 @@ static void *user_thread(void *unused)
 	return NULL;
 }
 
-static void passenger_handle()
-{
-	pthread_t passenger_thread_handle;
-	int i = 1;
-	if(i < MAX_N_PERSONS +1){
-		pthread_create(&passenger_thread_handle, NULL, passenger_thread,(void*)i)
-		i++;
-	}
-	else {
-		si_ui_show_error();
-	}
-	pthread_detach(passenger_thread, NULL);
-}
 int main(int argc, char **argv)
 {
 	si_ui_init();
 	init_random();
+	sem_init(&make_thread,0,0);
 	Lift = lift_create();
 	pthread_t user_thread_handle;
 	pthread_t lift_thread_handle;

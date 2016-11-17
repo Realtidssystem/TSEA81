@@ -2,6 +2,8 @@
 #define LIFT_H
 
 #include <pthread.h>
+#include <semaphore>
+
 
 /* fig_begin lift_h_defs */
 /* size of building */
