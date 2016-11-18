@@ -60,7 +60,7 @@ static void *lift_thread(void *unused)
 		// Move lift one floor
 		int next_floor;
 		int change_direction;
-		lift_next_floor(lift_type lift, int *next_floor, int *change_direction);
+		lift_next_floor(Lift, &next_floor, &change_direction);
 		lift_move(Lift, next_floor, change_direction);
 		lift_has_arrived(Lift);
 
@@ -78,7 +78,7 @@ static void *passenger_thread(void *idptr)
 	int id = *tmp;
 	sem_post(&make_thread);
 
-	lift->persons_to_enter[random_origin][id].id = id;
+
 
         // Sets a unique name shown in debuggers
         char buf[100];
@@ -113,7 +113,6 @@ static void *user_thread(void *unused)
 		// Read a message from the GUI
 		si_ui_receive(message);
 		if(!strcmp(message, "new")){
-			current_passenger_id
 			// create a new passenger if possible, else
 			// use si_ui_show_error() to show an error
 			// message if too many passengers have been
@@ -121,13 +120,13 @@ static void *user_thread(void *unused)
 			// a unique ID between 0 and MAX_N_PERSONS-1.
 			pthread_t passenger_thread_handle;
 			if(current_passenger_id < MAX_N_PERSONS){
-				pthread_create(&passenger_thread_handle, NULL, passenger_thread,(void*)current_passenger_id);
-				pthread_detach(passenger_thread, NULL);
+				pthread_create(&passenger_thread_handle, NULL, passenger_thread,(void*)&current_passenger_id);
+				pthread_detach(passenger_thread_handle);
 				sem_wait(&make_thread);
 				current_passenger_id++;
 			}
 			else {
-				si_ui_show_error();
+				si_ui_show_error("Maximum passengers already");
 			}
 
 

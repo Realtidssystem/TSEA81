@@ -2,7 +2,6 @@
 #define LIFT_H
 
 #include <pthread.h>
-#include <semaphore>
 
 
 /* fig_begin lift_h_defs */
@@ -24,7 +23,6 @@ typedef struct
     int id;
     /* destination floor */
     int to_floor;
-    int from_floor;
 } person_data_type;
 /* fig_end person_data_type */
 
