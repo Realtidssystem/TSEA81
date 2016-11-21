@@ -60,7 +60,9 @@ static void *lift_thread(void *unused)
 		// Move lift one floor
 		int next_floor;
 		int change_direction;
+
 		lift_next_floor(Lift, &next_floor, &change_direction);
+
 		lift_move(Lift, next_floor, change_direction);
 		lift_has_arrived(Lift);
 
@@ -86,14 +88,15 @@ static void *passenger_thread(void *idptr)
 	prctl(PR_SET_NAME,buf,0,0,0);
 
 	while(1){
-		int random_origin = get_random_value(id,N_FLOORS);
-		int random_to = get_random_value(id,N_FLOORS);
+		int random_origin = get_random_value(id,N_FLOORS-1);
+		int random_to = get_random_value(id,N_FLOORS-1);
 		// * Select random floors
 		// * Travel between these floors
 		// * Wait a little while
 		while(random_origin==random_to){
-			random_to = get_random_value(id,N_FLOORS);
+			random_to = get_random_value(id,N_FLOORS-1);
 		}
+		printf("In passenger loop");
 		lift_travel(Lift, id, random_origin, random_to);
 		usleep(50000);
 
@@ -113,6 +116,7 @@ static void *user_thread(void *unused)
 		// Read a message from the GUI
 		si_ui_receive(message);
 		if(!strcmp(message, "new")){
+			printf("%d\n", current_passenger_id );
 			// create a new passenger if possible, else
 			// use si_ui_show_error() to show an error
 			// message if too many passengers have been
