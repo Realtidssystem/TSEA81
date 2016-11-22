@@ -189,6 +189,11 @@ static int n_passengers_on_floor(lift_type lift)
           n_passengers++;
       }
   }
+
+  if (n_passengers_in_lift(lift) == MAX_N_PASSENGERS)
+  {
+    n_passengers = 0;
+  }
   return n_passengers;
 }
 
@@ -255,13 +260,8 @@ void lift_has_arrived(lift_type lift)
     printf("n_passengers_in_lift:");
     printf("%d\n", n_passengers_in_lift(lift));
     printf("In lift wait\n");
-    if(n_passengers_in_lift(lift) != MAX_N_PASSENGERS)
-    {
-        pthread_cond_wait(&lift->change, &lift->mutex);
-    }
-    else{
-      return;
-    }
+    pthread_cond_wait(&lift->change, &lift->mutex);
+
   }
   pthread_mutex_unlock(&lift->mutex);
 }
