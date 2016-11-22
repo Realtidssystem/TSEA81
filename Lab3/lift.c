@@ -248,8 +248,20 @@ void lift_has_arrived(lift_type lift)
   while ((n_passengers_on_floor(lift) != 0) || (n_passengers_to_leave(lift) != 0))
   {
     usleep(1);
-    pthread_cond_wait(&lift->change, &lift->mutex);
-
+    printf("n_passengers_on_floor:");
+    printf("%d\n",n_passengers_on_floor(lift));
+    printf("n_passengers_to_leave:");
+    printf("%d\n",n_passengers_to_leave(lift));
+    printf("n_passengers_in_lift:");
+    printf("%d\n", n_passengers_in_lift(lift));
+    printf("In lift wait\n");
+    if(n_passengers_in_lift(lift) != MAX_N_PASSENGERS)
+    {
+        pthread_cond_wait(&lift->change, &lift->mutex);
+    }
+    else{
+      return;
+    }
   }
   pthread_mutex_unlock(&lift->mutex);
 }
@@ -434,6 +446,9 @@ void lift_travel(lift_type lift, int id, int from_floor, int to_floor)
   while(passenger_wait_for_lift(lift,from_floor))
   {
     usleep(1);
+
+    printf("passenger wait for lift from:");
+    printf("%d\n", from_floor);
     pthread_cond_wait(&lift->change, &lift->mutex);
   };
 
@@ -446,6 +461,9 @@ void lift_travel(lift_type lift, int id, int from_floor, int to_floor)
   while(passenger_wait_to_leave(lift, to_floor))
   {
     usleep(1);
+
+    printf("passenger wait to leave to floor:");
+    printf("%d\n", to_floor);
     pthread_cond_wait(&lift->change, &lift->mutex);
   };
 

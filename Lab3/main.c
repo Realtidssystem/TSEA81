@@ -96,7 +96,7 @@ static void *passenger_thread(void *idptr)
 		while(random_origin==random_to){
 			random_to = get_random_value(id,N_FLOORS-1);
 		}
-		printf("In passenger loop");
+		//printf("In passenger loop");
 		lift_travel(Lift, id, random_origin, random_to);
 		usleep(50000);
 
