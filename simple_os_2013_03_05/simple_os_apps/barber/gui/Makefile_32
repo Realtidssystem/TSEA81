@@ -1,0 +1,28 @@
+# Makefile for Simple_OS apps
+
+# Target: Linux x86 soft kernel
+# Assumes SIMPLE_OS_DIR is set to directory where Simple_OS installation is 
+# Assumes all source and header files of the app are stored in src
+# Executable name is prog_x86_host
+
+# -------------BEGIN---- target specific lines --------------
+
+# set target specific define with -D
+# set 32 bits Linux with -m32
+C_FLAGS = -DBUILD_X86_HOST -m32
+
+# C-compiler command
+CC =gcc
+
+# Linker command
+LD =gcc
+# Linker flags
+LD_FLAGS =-m32
+# set target specific library suffix
+TARGET_SUFFIX=x86_host
+
+# -------------END---- target specific lines ----------------
+
+# The lines below are generic, and are used for all targets
+
+include rules.mk

@@ -1,0 +1,31 @@
+Simple\_OS GUI Java program
+
+#+AUTHOR: Ola Dahl
+#+EMAIL: dahl dot ola at gmail dot com
+#+OPTIONS: num:nil email:nil
+
+A GUI Java program is found in this directory. 
+
+It can be started with 
+
+: cd java
+: java GUISimpleOS
+
+The program communicates with a Simple\_OS application using TCP/IP
+
+Port number 2000 is used
+
+The current version supports communication within the same computer
+
+Communication with a Beagleboard running Simple\_OS can be done using a bridge
+program. An example bridge program is found in the file
+
+file:../simple_os_apps/tcp_serial/tcp_serial_redirect_mod.py
+
+If a Java SDK is installed, the program can be rebuilt using 
+
+: cd java
+: javac *.java
+
+If you have questions or comments, please contact
+Ola Dahl - dahl.ola@gmail.com

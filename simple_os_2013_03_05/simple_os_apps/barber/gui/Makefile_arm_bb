@@ -1,0 +1,33 @@
+# Makefile for Simple_OS apps
+
+# Target: ARM Beagleboard
+# Assumes SIMPLE_OS_DIR is set to directory where Simple_OS installation is 
+# Assumes all source and header files of the app are stored in src
+# Assumes ARM cross compiler and binutils with prefix arm-none-eabi available
+# Executable name is prog_arm_bb
+# Generated S-record file is prog_arm_bb.srec
+
+# -------------BEGIN---- target specific lines --------------
+
+# set target specific define with -D
+C_FLAGS = -DBUILD_ARM_BB
+
+# C-compiler command
+CC =arm-none-eabi-gcc
+
+# Linker command
+LD =arm-none-eabi-ld
+# Linker flags
+LD_FLAGS = -T $(SIMPLE_OS_DIR)/arch/arm_bb/link.ld
+# set target specific library suffix
+TARGET_SUFFIX=arm_bb
+
+# Add rule for S-record creation
+prog_arm_bb.srec: prog_arm_bb
+	arm-none-eabi-objcopy -O srec prog_arm_bb prog_arm_bb.srec
+		  
+# -------------END---- target specific lines ----------------
+
+# The lines below are generic, and are used for all targets
+
+include rules.mk

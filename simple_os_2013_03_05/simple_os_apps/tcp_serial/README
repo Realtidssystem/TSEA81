@@ -1,0 +1,7 @@
+This directory contains a Python script for redirecting serial 
+communication to TCP
+
+It is a slightly modified version of a file named tcp_serial_redirect.py. 
+The file is part of the pyserial package, for which information can be found at 
+
+http://pyserial.sourceforge.net/examples.html

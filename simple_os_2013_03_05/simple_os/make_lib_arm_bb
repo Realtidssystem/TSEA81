@@ -1,0 +1,1 @@
+make LIB_BASE_NAME=simple_os libsimple_os_arm_bb.a

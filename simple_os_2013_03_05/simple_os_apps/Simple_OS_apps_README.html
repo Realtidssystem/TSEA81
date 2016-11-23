@@ -1,0 +1,250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+lang="en" xml:lang="en">
+<head>
+<title>Simple_OS applications</title>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2013-03-05 11:02:33 CET"/>
+<meta name="author" content="Ola Dahl"/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color:lightblue; font-weight:normal }
+  .target { }
+  .timestamp { color: grey }
+  .timestamp-kwd { color: CadetBlue }
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*/-->
+</script>
+</head><body>
+<h1 class="title">Simple_OS applications</h1>
+
+
+<p>
+If you have questions or comments, please contact
+Ola Dahl - dahl.ola@gmail.com
+</p>
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">Simple_OS applications </a></li>
+<li><a href="#sec-2">Build on a Linux host </a></li>
+<li><a href="#sec-3">Build on a Windows host </a></li>
+<li><a href="#sec-4">Linux host - create new applicaton </a></li>
+<li><a href="#sec-5">Windows host - create new application </a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1">Simple_OS applications </h2>
+<div id="text-1">
+
+
+<p>
+The following application directories are available: 
+</p><ul>
+<li>
+barber/console - a Sleeping barber program with text output
+</li>
+<li>
+barber/gui - a Sleeping barber program with GUI communication
+</li>
+<li>
+hello_console - a hello world program with text output
+</li>
+<li>
+hello_gui - a hello world program with GUI communication
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2">Build on a Linux host </h2>
+<div id="text-2">
+
+
+<p>
+There are Linux host makefiles available in the application directories: 
+</p><ul>
+<li>
+Makefile_32 - for Linux 32-bit hosts
+
+</li>
+</ul>
+
+<p>In some application directories, the application is prepared for execution 
+also on an <a href="http://www.arm.com">ARM</a> target (<a href="http://www.beagleboard.org">Beagleboard</a>, running Simple_OS). For these
+applications, there is a makefile for ARM in the application
+directory: 
+</p><ul>
+<li>
+Makefile_arm_bb - for ARM target on Beagleboard
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3">Build on a Windows host </h2>
+<div id="text-3">
+
+
+<p>
+The directory 
+</p>
+<pre class="example">
+win\vs_cpp_2010_express\simple_os_prog
+</pre>
+
+<p>
+contains a Visual Studio Express project file, which can 
+be used when applications shall be built and executed using Windows
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4">Linux host - create new applicaton </h2>
+<div id="text-4">
+
+
+<p>
+If you want to create a new application and you use a Linux host, a shell script 
+is available, and can be used, e.g. like 
+</p>
+<pre class="example">
+source start_new_app_32.sh my_app
+</pre>
+
+<p>
+for creating a directory my_app, with src and obj directories created, and with 
+symbolic links to Makefile_32 and rules.mk automatically created. 
+</p>
+<p>
+Then, store your source files in the src subdirectory of your new directory (my_app 
+in this case), and using 
+</p>
+<pre class="example">
+make -f Makefile_32 
+</pre>
+
+<p>
+your application can be built for Linux host. 
+</p>
+<p>
+If you want to build for Linux 64-bit then create a symbolic link to the Makefile_64
+file, in the same way as the link to Makefile_32 was created (see the file 
+start_new_app_32.sh for information about this). 
+</p>
+<p>
+If you want to build for ARM you need a cross compiler. Simple_OS is prepared for use with
+CodeSourcery's ARM compiler on a Linux host. 
+</p>
+<p>
+The ARM compiler can be downloaded and installed as described on <a href="http://theintobooks.wordpress.com/2012/10/11/installing-an-arm-cross-compiler-on-ubuntu/">this post on the Intobooks blog</a>.
+</p>
+<p>
+Provided you have access to this compiler (or another one, but then you need to verify 
+yourself that it can be used to build Simple_OS and Simple_OS applications), a build
+for ARM can be done by creating a symbolic link to Makefile_arm_bb, and then using 
+</p>
+<pre class="example">
+make -f Makefile_arm_bb
+</pre>
+
+<p>
+for compilation and linking. This results in a file prog_arm_bb.srec, which then 
+can be downloaded to a Beagleboard using e.g. gtkterm. 
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-5" class="outline-2">
+<h2 id="sec-5">Windows host - create new application </h2>
+<div id="text-5">
+
+
+<p>
+If you want to create a new application and you use a Windows host, please create a new
+subdirectory where your sourcefiles are stored. Then, use the already available 
+Visual Studio project (the simple_os_prog.sln file), and include your source files into 
+this project (and if needed, remove source files belonging to any one of the applications 
+mentioned above from the project)
+</p>
+<p>
+NOTE: when removing old source files and adding new files to a project, it is advised to do 
+a complete rebuild the first time the new source files are compiled. This is achived using 
+the command 
+</p>
+<pre class="example">
+Ctrl-Alt-F7
+</pre>
+
+
+</div>
+</div>
+<div id="postamble"><p class="author"> Author: Ola Dahl
+<a href="mailto:dahl dot ola at gmail dot com">&lt;dahl dot ola at gmail dot com&gt;</a>
+</p>
+<p class="date"> Date: 2013-03-05 11:02:33 CET</p>
+<p>HTML generated by org-mode 6.21b in emacs 23</p>
+</div></body>
+</html>
