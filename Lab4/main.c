@@ -29,7 +29,7 @@ typedef enum {LIFT_TRAVEL, // A travel message is sent to the list process when 
 	                        // lift travel is finished
 	      LIFT_MOVE         // A move message is sent to the lift task when the lift shall move
 	                        // to the next floor
-} lift_msg_type; 
+} lift_msg_type;
 
 struct lift_msg{
 	lift_msg_type type;  // Type of message
@@ -40,7 +40,7 @@ struct lift_msg{
 
 
 
-// Since we use processes now and not 
+// Since we use processes now and not
 static int get_random_value(int person_id, int maximum_value)
 {
 	return rand() % (maximum_value + 1);
@@ -63,6 +63,9 @@ static void liftmove_process(void)
 		// TODO:
 		//    Sleep 2 seconds
                 //    Send a message to the lift process to move the lift.
+						usleep(2000000);
+						m->type = LIFT_MOVE;
+						message_send((char *) &m, sizeof(m), QUEUE_LIFT,0);
 	}
 }
 
@@ -72,7 +75,7 @@ static void lift_process(void)
         lift_type Lift;
 	Lift = lift_create();
 	int change_direction, next_floor;
-	
+
 	char msgbuf[4096];
 	while(1){
 		int i;
@@ -84,12 +87,17 @@ static void lift_process(void)
 			fprintf(stderr, "Message too short\n");
 			continue;
 		}
-		
+
 		m = (struct lift_msg *) msgbuf;
 		switch(m->type){
 		case LIFT_MOVE:
-			// TODO: 
+			// TODO:
 			//    Check if passengers want to leave elevator
+			if(n_passengers_to_leave != 0){
+				
+				leave_lift(Lift, m->to_floor, m->person_id);
+				while
+			}
                         //        Remove the passenger from the elevator
                         //        Send a LIFT_TRAVEL_DONE for each passenger that leaves
                         //        the elevator
@@ -98,8 +106,26 @@ static void lift_process(void)
 			//    Move the lift
 			break;
 		case LIFT_TRAVEL:
-                        // TODO:
-                        //    Update the Lift structure so that the person with the given ID  is now present on the floor
+                // TODO:
+								put_person_on_floor(lift, m->person_id, m->from_floor, m->to_floor);
+								message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
+								put_passenger_in_lift(lift,id,to_floor);
+								message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
+
+								while(passenger_wait_to_leave(lift, to_floor))
+								{
+									usleep(1);
+								};
+								leave_lift(lift,id);
+								message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
+								enter_floor(lift,id,to_floor);
+								message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
+								delete_passenger(lift,id,to_floor);
+								draw_lift(lift);
+
+								usleep(5000000);
+
+              //    Update the Lift structure so that the person with the given ID is now present on the floor
 			break;
 		}
 	}
@@ -113,6 +139,21 @@ static void person_process(int id)
 	struct lift_msg m;
 	while(1){
 		// TODO:
+		m.person_id = id;
+		m.to_floor = get_random_value(id,N_FLOORS-1);
+		m.from_floor = get_random_value(id, N_FLOORS-1);
+		while(m.to_floor == m.from_floor){
+			m.to_floor = get_random_value(id , N_FLOORS -1);
+		}
+		m.type = LIFT_TRAVEL;
+		message_send((char *) &m, sizeof(m), QUEUE_LIFT,0);
+		int len = message_receive(buf, 4096, QUEUE_FIRSTPERSON + id);
+		while(len < sizeof(struct lift_msg)){
+			fprintf(stderr, "Message too short\n");
+			continue;
+		}
+		usleep(5000);
+
 		//    Generate a to and from floor
 		//    Send a LIFT_TRAVEL message to the lift process
                 //    Wait for a LIFT_TRAVEL_DONE message
@@ -128,13 +169,21 @@ void uicommand_process(void)
 {
 	int i;
 	int current_person_id = 0;
-	char message[SI_UI_MAX_MESSAGE_SIZE]; 
+	char message[SI_UI_MAX_MESSAGE_SIZE];
 	while(1){
 		// Read a message from the GUI
 		si_ui_receive(message);
 		if(!strcmp(message, "new")){
 			// TODO:
 			// * Check that we don't create too many persons
+			if(current_person_id < MAX_N_PERSONS){
+				person_pid[current_person_id] = fork();
+				if(!person_pid[current_person_id]){
+					person_process(current_person_id);
+				}
+				usleep(500);
+				current_person_id++;
+			}
 			// * fork and create a new person process (and
 			//   record the new pid in person_pid[])
 		}else if(!strcmp(message, "exit")){
@@ -160,7 +209,7 @@ void uicommand_process(void)
 void uidraw_process(void)
 {
 	char msg[1024];
-	si_ui_set_size(670, 700); 
+	si_ui_set_size(670, 700);
 	while(1){
 		message_receive(msg, 1024, QUEUE_UI);
 		lift_type Lift = (lift_type) &msg[0];

@@ -77,8 +77,6 @@ lift_type lift_create(void)
     }
 
     /* initialise mutex and event variable */
-    pthread_mutex_init(&lift->mutex,NULL);
-    pthread_cond_init(&lift->change,NULL);
 
     return lift;
 }
@@ -100,7 +98,6 @@ void lift_delete(lift_type lift)
    shall be changed */
 void lift_next_floor(lift_type lift, int *next_floor, int *change_direction)
 {
-  pthread_mutex_lock(&lift->mutex);
   if((lift->floor == 0) || (lift->floor == N_FLOORS-1))
   {
       *change_direction = 1;
@@ -122,25 +119,21 @@ void lift_next_floor(lift_type lift, int *next_floor, int *change_direction)
   else{
     *next_floor = *next_floor +1;
   }
-  pthread_mutex_unlock(&lift->mutex);
 }
 
 void lift_move(lift_type lift, int next_floor, int change_direction)
 {
     /* reserve lift */
-    pthread_mutex_lock(&lift->mutex);
 
     /* the lift is moving */
     lift->moving = 1;
 
     /* release lift */
-    pthread_mutex_unlock(&lift->mutex);
 
     /* it takes two seconds to move to the next floor */
     usleep(2000000);
 
     /* reserve lift */
-    pthread_mutex_lock(&lift->mutex);
 
     /* the lift is not moving */
     lift->moving = 0;
@@ -158,7 +151,6 @@ void lift_move(lift_type lift, int next_floor, int change_direction)
     draw_lift(lift);
 
     /* release lift */
-    pthread_mutex_unlock(&lift->mutex);
 }
 
 /* this function is used also by the person tasks */
@@ -247,23 +239,12 @@ static int n_passengers_to_leave(lift_type lift)
 
 void lift_has_arrived(lift_type lift)
 {
-  pthread_mutex_lock(&lift->mutex);
-  pthread_cond_broadcast(&lift->change);
   draw_lift(lift);
   while ((n_passengers_on_floor(lift) != 0) || (n_passengers_to_leave(lift) != 0))
   {
     usleep(1);
-    printf("n_passengers_on_floor:");
-    printf("%d\n",n_passengers_on_floor(lift));
-    printf("n_passengers_to_leave:");
-    printf("%d\n",n_passengers_to_leave(lift));
-    printf("n_passengers_in_lift:");
-    printf("%d\n", n_passengers_in_lift(lift));
-    printf("In lift wait\n");
-    pthread_cond_wait(&lift->change, &lift->mutex);
 
   }
-  pthread_mutex_unlock(&lift->mutex);
 }
 
 static void delete_passenger(lift_type lift,int id, int floor){
@@ -408,7 +389,7 @@ static void put_passenger_in_lift(lift_type lift,int id,int to_floor){
 
 
 }
-static void leave_lift(lift_type lift, int id){
+static void leave_lift(lift_type lift,int floor, int *id){
   int i;
   int floor_index;
   int found;
@@ -417,7 +398,7 @@ static void leave_lift(lift_type lift, int id){
   found = 0;
   for (i = 0; i < MAX_N_PASSENGERS && !found; i++)
   {
-      if (lift->passengers_in_lift[i].id == id)
+      if (lift->passengers_in_lift[i].id == *id)
       {
           found = 1;
           floor_index = i;
@@ -438,24 +419,17 @@ static void leave_lift(lift_type lift, int id){
    starting at from_floor, and ending at to_floor */
 void lift_travel(lift_type lift, int id, int from_floor, int to_floor)
 {
-  pthread_mutex_lock(&lift->mutex);
   put_person_on_floor(lift,id,from_floor,to_floor);
 
-  pthread_cond_broadcast(&lift->change);
   draw_lift(lift);
   while(passenger_wait_for_lift(lift,from_floor))
   {
     usleep(1);
-
-    printf("passenger wait for lift from:");
-    printf("%d\n", from_floor);
-    pthread_cond_wait(&lift->change, &lift->mutex);
   };
 
   leave_floor(lift, id, from_floor);
   draw_lift(lift);
   put_passenger_in_lift(lift,id,to_floor);
-  pthread_cond_broadcast(&lift->change);
   draw_lift(lift);
 
   while(passenger_wait_to_leave(lift, to_floor))
@@ -464,20 +438,15 @@ void lift_travel(lift_type lift, int id, int from_floor, int to_floor)
 
     printf("passenger wait to leave to floor:");
     printf("%d\n", to_floor);
-    pthread_cond_wait(&lift->change, &lift->mutex);
   };
 
   leave_lift(lift,id);
   draw_lift(lift);
   enter_floor(lift,id,to_floor);
-  pthread_cond_broadcast(&lift->change);
   draw_lift(lift);
 
   delete_passenger(lift,id,to_floor);
   draw_lift(lift);
-
-  //pthread_cond_broadcast(&lift->change);
-  pthread_mutex_unlock(&lift->mutex);
 
   usleep(5000000);
 
