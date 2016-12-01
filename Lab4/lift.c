@@ -98,27 +98,18 @@ void lift_delete(lift_type lift)
    shall be changed */
 void lift_next_floor(lift_type lift, int *next_floor, int *change_direction)
 {
-  if((lift->floor == 0) || (lift->floor == N_FLOORS-1))
-  {
-      *change_direction = 1;
-  }
-  else
-  {
-    *change_direction = 0;
-  }
-  if(lift->floor == 0){
-    *next_floor = 1;
-  }
-  else if(lift->floor == N_FLOORS-1)
-  {
-    *next_floor = N_FLOORS - 2;
-  }
-  else if(lift->up){
-    *next_floor = *next_floor -1;
-  }
-  else{
-    *next_floor = *next_floor +1;
-  }
+  if (lift->up == 0) {
+   if (lift->floor == 1) {
+     *change_direction = 1;
+   }
+   *next_floor = lift->floor - 1;
+ }
+ else if (lift->up == 1) {
+   if (lift->floor == N_FLOORS-2) {
+     *change_direction = 1;
+   }
+   *next_floor = lift->floor + 1;
+ }
 }
 
 void lift_move(lift_type lift, int next_floor, int change_direction)

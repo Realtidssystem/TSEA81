@@ -59,13 +59,12 @@ static void init_random(void)
 static void liftmove_process(void)
 {
 	struct lift_msg m;
-	m.type = LIFT_MOVE;
+
 	while(1){
-		// TODO:
 		//    Sleep 2 seconds
 						printf("liftmove_process innan sleep\n");
             usleep(2000000);    //    Send a message to the lift process to move the lift.
-
+						m.type = LIFT_MOVE;
 						message_send((char *) &m, sizeof(m), QUEUE_LIFT, 0);
 						printf("liftmove_process efter lift_move sent\n");
 
@@ -95,7 +94,6 @@ static void lift_process(void)
 		m = (struct lift_msg *) msgbuf;
 		switch(m->type){
 		case LIFT_MOVE:
-			// TODO:
 			//    Check if passengers want to leave elevator
 			printf("In lift_move \n");
 		/*	if(n_passengers_to_leave(Lift) != 0){
@@ -110,6 +108,7 @@ static void lift_process(void)
 			}*/
 			reply.type = LIFT_TRAVEL_DONE;
 			for(i = 0; i < MAX_N_PASSENGERS; i++){
+				printf("in first loop\n");
         			if (Lift->passengers_in_lift[i].to_floor == Lift->floor)
         			{
 								message_send((char *) &reply, sizeof(reply), QUEUE_FIRSTPERSON + Lift->passengers_in_lift[i].id ,0);
@@ -130,6 +129,7 @@ static void lift_process(void)
 						}
 					}*/
 					for(i = 0; i < MAX_N_PERSONS; i++){
+						printf("second loop\n");
 						person_data_type person = Lift->persons_to_enter[Lift->floor][i];
         			if (person.id != NO_ID && (n_passengers_in_lift(Lift) < MAX_N_PASSENGERS))
         			{
@@ -142,7 +142,7 @@ static void lift_process(void)
 			lift_move(Lift, next_floor, change_direction);
 			//message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
 			printf("Send Lift_travel\n");
-			change_direction = 0;
+			//change_direction = 0;
 			            //        Remove the passenger from the elevator
                         //        Send a LIFT_TRAVEL_DONE for each passenger that leaves
                         //        the elevator
@@ -151,7 +151,6 @@ static void lift_process(void)
 			//    Move the lift
 			break;
 		case LIFT_TRAVEL:
-                // TODO:
 				printf("In Lift_travel\n");
 				for(i=0; i<MAX_N_PERSONS;i++){
 					if(Lift->persons_to_enter[Lift->floor][i].id!=NO_ID){
@@ -216,7 +215,6 @@ void uicommand_process(void)
 		// Read a message from the GUI
 		si_ui_receive(message);
 		if(!strcmp(message, "new")){
-			// TODO:
 			// * Check that we don't create too many persons
 			if(current_person_id < MAX_N_PERSONS){
 				person_pid[current_person_id] = fork();
