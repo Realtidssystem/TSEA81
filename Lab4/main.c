@@ -62,18 +62,19 @@ static void liftmove_process(void)
 	while(1){
 		// TODO:
 		//    Sleep 2 seconds
-                //    Send a message to the lift process to move the lift.
-						usleep(2000000);
-						m->type = LIFT_MOVE;
+            usleep(2000000);    //    Send a message to the lift process to move the lift.
+						m.type = LIFT_MOVE;
 						message_send((char *) &m, sizeof(m), QUEUE_LIFT,0);
+
 	}
 }
 
 
 static void lift_process(void)
 {
-        lift_type Lift;
+  lift_type Lift;
 	Lift = lift_create();
+	message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
 	int change_direction, next_floor;
 
 	char msgbuf[4096];
@@ -93,12 +94,37 @@ static void lift_process(void)
 		case LIFT_MOVE:
 			// TODO:
 			//    Check if passengers want to leave elevator
-			if(n_passengers_to_leave != 0){
-				
-				leave_lift(Lift, m->to_floor, m->person_id);
-				while
+			printf("In lift_move \n");
+			if(n_passengers_to_leave(Lift) != 0){
+				printf("In n_passengers_to_leave\n");
+				for(i = 0; i < MAX_N_PASSENGERS; i++){
+					if(leave_lift(Lift, Lift->floor, i) != 0){
+						reply.type = LIFT_TRAVEL_DONE;
+						message_send((char *) &reply, sizeof(reply), QUEUE_FIRSTPERSON+i,0);
+						message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
+					}
+				}
 			}
-                        //        Remove the passenger from the elevator
+			printf("passed n_passengers_to_leave\n");
+			if(n_passengers_on_floor(Lift) != 0)
+				{
+					printf("In n_passengers_on_floor\n");
+					for(i = 0; i < MAX_N_PASSENGERS; i++){
+						if(Lift->persons_to_enter[Lift->floor][i].id != NO_ID){
+							leave_floor(Lift, Lift->floor,i);
+							put_passenger_in_lift(Lift, i,Lift->persons_to_enter[Lift->floor][i].to_floor);
+							message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
+							}
+						}
+					}
+			printf("lift_next_floor\n");
+			lift_next_floor(Lift, &next_floor, &change_direction);
+			lift_move(Lift, next_floor, change_direction);
+			printf("after lift_move\n");
+			message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
+			printf("Send Lift_travel\n");
+			change_direction = 0;
+			            //        Remove the passenger from the elevator
                         //        Send a LIFT_TRAVEL_DONE for each passenger that leaves
                         //        the elevator
 			//    Check if passengers want to enter elevator
@@ -107,31 +133,26 @@ static void lift_process(void)
 			break;
 		case LIFT_TRAVEL:
                 // TODO:
-								put_person_on_floor(lift, m->person_id, m->from_floor, m->to_floor);
-								message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
-								put_passenger_in_lift(lift,id,to_floor);
-								message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
+				printf("In Lift_travel\n");
+				for(i=0; i<MAX_N_PERSONS;i++){
+					if(Lift->persons_to_enter[Lift->floor][i].id!=NO_ID){
+						Lift->persons_to_enter[m->from_floor][i].id= m->person_id;
+						Lift->persons_to_enter[m->from_floor][i].to_floor= m->to_floor;
+					}
+				}
+				message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
 
-								while(passenger_wait_to_leave(lift, to_floor))
-								{
-									usleep(1);
-								};
-								leave_lift(lift,id);
-								message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
-								enter_floor(lift,id,to_floor);
-								message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
-								delete_passenger(lift,id,to_floor);
-								draw_lift(lift);
-
-								usleep(5000000);
 
               //    Update the Lift structure so that the person with the given ID is now present on the floor
 			break;
+		case LIFT_TRAVEL_DONE:
+			printf("In LIFT_TRAVEL_DONE\n");
+			break;
 		}
-	}
+
 	return;
 }
-
+}
 static void person_process(int id)
 {
 	init_random();
@@ -170,6 +191,7 @@ void uicommand_process(void)
 	int i;
 	int current_person_id = 0;
 	char message[SI_UI_MAX_MESSAGE_SIZE];
+	struct lift_msg m;
 	while(1){
 		// Read a message from the GUI
 		si_ui_receive(message);
@@ -200,6 +222,10 @@ void uicommand_process(void)
 				}
 			}
 			exit(0);
+		}
+		else {
+			m.type = LIFT_TRAVEL;
+			message_send((char *) &m, sizeof(m), QUEUE_LIFT,0);
 		}
 	}
 }

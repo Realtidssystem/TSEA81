@@ -102,5 +102,16 @@ void lift_has_arrived(lift_type lift);
 void lift_travel(
     lift_type lift, int id, int from_floor, int to_floor);
 /* fig_end mon_functions */
+int leave_lift(lift_type lift,int floor, int id);
+void put_passenger_in_lift(lift_type lift,int id,int to_floor);
+void put_person_on_floor(lift_type lift,int id,int from_floor,int to_floor);
+void leave_floor(lift_type lift, int id, int enter_floor);
+void enter_floor(lift_type lift, int id, int floor);
+void delete_passenger(lift_type lift,int id, int floor);
+int n_passengers_to_leave(lift_type lift);
+int n_passengers_on_floor(lift_type lift);
+int passenger_wait_for_lift(lift_type lift, int wait_floor);
+int passenger_wait_to_leave(lift_type lift, int dest_floor);
+int n_passengers_in_lift(lift_type lift);
 
 #endif
