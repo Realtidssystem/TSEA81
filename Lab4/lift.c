@@ -123,34 +123,14 @@ void lift_next_floor(lift_type lift, int *next_floor, int *change_direction)
 
 void lift_move(lift_type lift, int next_floor, int change_direction)
 {
-    /* reserve lift */
+  /* the lift has arrived at next_floor */
+  lift->floor = next_floor;
 
-    /* the lift is moving */
-    lift->moving = 1;
-
-    /* release lift */
-
-    /* it takes two seconds to move to the next floor */
-    usleep(2000000);
-
-    /* reserve lift */
-
-    /* the lift is not moving */
-    lift->moving = 0;
-
-    /* the lift has arrived at next_floor */
-    lift->floor = next_floor;
-
-    /* check if direction shall be changed */
-    if (change_direction)
-    {
-        lift->up = !lift->up;
-    }
-
-    /* draw, since a change has occurred */
-    draw_lift(lift);
-
-    /* release lift */
+  /* check if direction shall be changed */
+  if (change_direction)
+  {
+      lift->up = !lift->up;
+  }
 }
 
 /* this function is used also by the person tasks */
