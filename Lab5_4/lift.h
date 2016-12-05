@@ -9,7 +9,7 @@
 #define N_FLOORS 5
 
 /* maximum number of persons in the lift system */
-#define MAX_N_PERSONS 10
+#define MAX_N_PERSONS 50
 
 /* maximum number of passengers in lift */
 #define MAX_N_PASSENGERS 5

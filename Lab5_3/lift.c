@@ -137,7 +137,7 @@ void lift_move(lift_type lift, int next_floor, int change_direction)
     pthread_mutex_unlock(&lift->mutex);
 
     /* it takes two seconds to move to the next floor */
-    usleep(2000000);
+    //usleep(2000000);
 
     /* reserve lift */
     pthread_mutex_lock(&lift->mutex);
@@ -145,6 +145,7 @@ void lift_move(lift_type lift, int next_floor, int change_direction)
     /* the lift is not moving */
     lift->moving = 0;
 
+  //  pthread_cond_wait(&lift->change6, &lift->mutex);
     /* the lift has arrived at next_floor */
     lift->floor = next_floor;
 
@@ -154,6 +155,7 @@ void lift_move(lift_type lift, int next_floor, int change_direction)
         lift->up = !lift->up;
     }
 
+    pthread_cond_broadcast(&lift->change);
     /* draw, since a change has occurred */
     draw_lift(lift);
 
@@ -248,21 +250,28 @@ static int n_passengers_to_leave(lift_type lift)
 void lift_has_arrived(lift_type lift)
 {
   pthread_mutex_lock(&lift->mutex);
-  pthread_cond_broadcast(&lift->change);
+
+  if(lift->floor == 0){
+  pthread_cond_broadcast(&lift->change1);
+  }
+  else if(lift->floor == 1){
+    pthread_cond_broadcast(&lift->change2);
+  }
+  else if(lift->floor == 2){
+    pthread_cond_broadcast(&lift->change3);
+  }
+  else if(lift->floor == 3){
+    pthread_cond_broadcast(&lift->change4);
+  }
+  else if(lift->floor == 4){
+    pthread_cond_broadcast(&lift->change5);
+  }
   draw_lift(lift);
   while ((n_passengers_on_floor(lift) != 0) || (n_passengers_to_leave(lift) != 0))
   {
-    usleep(1);
-    printf("n_passengers_on_floor:");
-    printf("%d\n",n_passengers_on_floor(lift));
-    printf("n_passengers_to_leave:");
-    printf("%d\n",n_passengers_to_leave(lift));
-    printf("n_passengers_in_lift:");
-    printf("%d\n", n_passengers_in_lift(lift));
-    printf("In lift wait\n");
-    pthread_cond_wait(&lift->change, &lift->mutex);
-
+    //usleep(1);
   }
+  pthread_cond_broadcast(&lift->change6);
   pthread_mutex_unlock(&lift->mutex);
 }
 
@@ -440,30 +449,52 @@ void lift_travel(lift_type lift, int id, int from_floor, int to_floor)
 {
   pthread_mutex_lock(&lift->mutex);
   put_person_on_floor(lift,id,from_floor,to_floor);
-
-  pthread_cond_broadcast(&lift->change);
   draw_lift(lift);
   while(passenger_wait_for_lift(lift,from_floor))
   {
-    usleep(1);
-
-    printf("passenger wait for lift from:");
-    printf("%d\n", from_floor);
+    //usleep(1);
+    if(from_floor == 0){
+      pthread_cond_wait(&lift->change1, &lift->mutex);
+    }
+    else if(from_floor == 1){
+      pthread_cond_wait(&lift->change2, &lift->mutex);
+    }
+    else if(from_floor == 2){
+      pthread_cond_wait(&lift->change3, &lift->mutex);
+    }
+    else if(from_floor == 3){
+      pthread_cond_wait(&lift->change4, &lift->mutex);
+    }
+    else if(from_floor == 4){
+      pthread_cond_wait(&lift->change5, &lift->mutex);
+    }
     pthread_cond_wait(&lift->change, &lift->mutex);
   };
 
   leave_floor(lift, id, from_floor);
   draw_lift(lift);
   put_passenger_in_lift(lift,id,to_floor);
+  if(lift->floor == 0){
+    pthread_cond_broadcast(&lift->change1);
+  }
+  else if(lift->floor == 1){
+    pthread_cond_broadcast(&lift->change2);
+  }
+  else if(lift->floor == 2){
+    pthread_cond_broadcast(&lift->change3);
+  }
+  else if(lift->floor == 3){
+    pthread_cond_broadcast(&lift->change4);
+  }
+  else if(lift->floor == 4){
+    pthread_cond_broadcast(&lift->change5);
+  }
   pthread_cond_broadcast(&lift->change);
   draw_lift(lift);
 
   while(passenger_wait_to_leave(lift, to_floor))
   {
-    usleep(1);
-
-    printf("passenger wait to leave to floor:");
-    printf("%d\n", to_floor);
+    //usleep(1);
     pthread_cond_wait(&lift->change, &lift->mutex);
   };
 
@@ -471,6 +502,7 @@ void lift_travel(lift_type lift, int id, int from_floor, int to_floor)
   draw_lift(lift);
   enter_floor(lift,id,to_floor);
   pthread_cond_broadcast(&lift->change);
+  pthread_cond_broadcast(&lift->change6);
   draw_lift(lift);
 
   delete_passenger(lift,id,to_floor);

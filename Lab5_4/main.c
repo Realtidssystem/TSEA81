@@ -10,7 +10,10 @@
 #include "messages.h"
 
 #include "draw.h"
-
+#include <sys/time.h>
+struct timeval starttime;
+struct timeval endtime;
+long long int timediff;
 #define QUEUE_UI 0
 #define QUEUE_LIFT 1
 #define QUEUE_FIRSTPERSON 10
@@ -63,11 +66,10 @@ static void liftmove_process(void)
 
 		while(1){
 			//    Sleep 2 seconds
-					printf("Innan sleep i move_process\n");
-	        sleep(2);
+
+	        //sleep(2);
 	        //    Send a message to the lift process to move the lift.
 	        message_send((char *) &m, sizeof(m), QUEUE_LIFT, 0);
-					printf("Efter message_send i move_process\n");
 		}
 }
 
@@ -83,7 +85,7 @@ static void lift_process(void)
 		int i;
 		struct lift_msg reply;
 		struct lift_msg *m;
-		message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0); // Draw the lift
+		//message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0); // Draw the lift
 		int len = message_receive(msgbuf, 4096, QUEUE_LIFT); // Wait for a message
 		if(len < sizeof(struct lift_msg)){
 			fprintf(stderr, "Message too short\n");
@@ -97,24 +99,24 @@ static void lift_process(void)
 			//        Remove the passenger from the elevator
 			//        Send a LIFT_TRAVEL_DONE for each passenger that leaves
 			//        the elevator
-				printf("In lift_move \n");
+
 				reply.type = LIFT_TRAVEL_DONE;
 				for(i = 0; i < MAX_N_PASSENGERS; i++){
-					printf("in first loop\n");
+
 	        			if (Lift->passengers_in_lift[i].to_floor == Lift->floor)
 	        			{
 									int id = Lift->passengers_in_lift[i].id;
 									Lift->passengers_in_lift[i].id = NO_ID;
 	    						Lift->passengers_in_lift[i].to_floor = NO_FLOOR;
 									message_send((char *) &reply, sizeof(reply), QUEUE_FIRSTPERSON + id ,0);
-									printf("skickat travel done\n");
+
 	    						}
 	    			}
-				printf("passed n_passengers_to_leave\n");
+
 				//    Check if passengers want to enter elevator
 				//    Remove the passenger from the floor and into the elevator
 						for(i = 0; i < MAX_N_PERSONS; i++){
-							printf("second loop\n");
+
 							person_data_type person = Lift->persons_to_enter[Lift->floor][i];
 	        			if (person.id != NO_ID && (n_passengers_in_lift(Lift) < MAX_N_PASSENGERS))
 	        			{
@@ -127,10 +129,10 @@ static void lift_process(void)
 				lift_move(Lift, next_floor, change_direction);
 				//message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
 				change_direction = 0;
-				printf("After lift_move\n");
+
 				break;
 		case LIFT_TRAVEL:
-				printf("In Lift_travel\n");
+
 			//    Update the Lift structure so that the person with the given ID is now present on the floor
 				for(i=0; i<MAX_N_PERSONS;i++){
 					if(Lift->persons_to_enter[m->from_floor][i].id == NO_ID){
@@ -139,7 +141,7 @@ static void lift_process(void)
 						break;
 					}
 				}
-				message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
+				//message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
 
 				break;
 		default:
@@ -153,7 +155,9 @@ static void person_process(int id)
 	init_random();
 	char buf[4096];
 	struct lift_msg m;
+	long long int max_timediff = 0;
 	while(1){
+		gettimeofday(&starttime, NULL);
 		//    Generate a to and from floor
 		int to_floor = get_random_value(id,N_FLOORS-1);
 		int from_floor = get_random_value(id, N_FLOORS-1);
@@ -168,14 +172,23 @@ static void person_process(int id)
 		message_send((char *) &m, sizeof(m), QUEUE_LIFT,0);
 		//    Wait for a LIFT_TRAVEL_DONE message
 		int len = message_receive(buf, 4096, QUEUE_FIRSTPERSON + id);
-		printf("Travel_done recieved\n");
+
 		while(len < sizeof(struct lift_msg)){
 			fprintf(stderr, "Message too short\n");
 			continue;
 		}
 
+		gettimeofday(&endtime, NULL);
+		timediff = (endtime.tv_sec*1000000ULL + endtime.tv_usec) -
+		           (starttime.tv_sec*1000000ULL + starttime.tv_usec);
+
+		if(timediff > max_timediff){
+			max_timediff = timediff;
+			printf("  Passenger id: %d\n", id);
+			printf("  time difference: %lld\n", max_timediff);
+		}
 		//    Wait a little while
-		sleep(5);
+		//sleep(5);
 	}
 }
 
@@ -206,7 +219,17 @@ void uicommand_process(void)
                 }
                 person_counter++;
             }
-		}else if(!strcmp(message, "exit")){
+		}else if(!strcmp(message, "test")){
+			while(person_counter < MAX_N_PERSONS) {
+				person_pid[person_counter] = fork();
+				if (!person_pid[person_counter]) {
+						person_process(person_counter);
+				}
+				person_counter++;
+			}
+		}
+
+		else if(!strcmp(message, "exit")){
 			// The code below sends the SIGINT signal to
 			// all processes involved in this application
 			// except for the uicommand process itself

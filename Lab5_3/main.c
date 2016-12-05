@@ -8,6 +8,12 @@
 #include "lift.h"
 #include "si_ui.h"
 #include "debug.h"
+#include <sys/time.h>
+struct timeval starttime;
+struct timeval endtime;
+long long int timediff;
+
+
 
 sem_t make_thread;
 
@@ -86,8 +92,9 @@ static void *passenger_thread(void *idptr)
         char buf[100];
         sprintf(buf, "Passenger #%d", id);
 	prctl(PR_SET_NAME,buf,0,0,0);
-
+	long long int max_timediff = 0;
 	while(1){
+		gettimeofday(&starttime, NULL);
 		int random_origin = get_random_value(id,N_FLOORS-1);
 		int random_to = get_random_value(id,N_FLOORS-1);
 		// * Select random floors
@@ -98,7 +105,16 @@ static void *passenger_thread(void *idptr)
 		}
 		//printf("In passenger loop");
 		lift_travel(Lift, id, random_origin, random_to);
-		usleep(50000);
+		//usleep(50000);
+		gettimeofday(&endtime, NULL);
+		timediff = (endtime.tv_sec*1000000ULL + endtime.tv_usec) -
+		           (starttime.tv_sec*1000000ULL + starttime.tv_usec);
+
+		if(timediff > max_timediff){
+			max_timediff = timediff;
+			printf("  Passenger id: %d\n", id);
+			printf("  time difference: %lld\n", max_timediff);
+		}
 
 	}
 	return NULL;
@@ -134,7 +150,22 @@ static void *user_thread(void *unused)
 			}
 
 
-		}else if(!strcmp(message, "exit")){
+		}else if(!strcmp(message, "test")){
+			printf("%d\n", current_passenger_id );
+			// create a new passenger if possible, else
+			// use si_ui_show_error() to show an error
+			// message if too many passengers have been
+			// created. Make sure that each passenger gets
+			// a unique ID between 0 and MAX_N_PERSONS-1.
+			pthread_t passenger_thread_handle;
+			while(current_passenger_id < MAX_N_PERSONS){
+				pthread_create(&passenger_thread_handle, NULL, passenger_thread,(void*)&current_passenger_id);
+				pthread_detach(passenger_thread_handle);
+				sem_wait(&make_thread);
+				current_passenger_id++;
+		}
+	}
+		else if(!strcmp(message, "exit")){
 			lift_delete(Lift);
 			exit(0);
 		}

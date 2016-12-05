@@ -50,6 +50,12 @@ typedef struct
 
     /* condition variable, to indicate that something has happend */
     pthread_cond_t change;
+    pthread_cond_t change1;
+    pthread_cond_t change2;
+    pthread_cond_t change3;
+    pthread_cond_t change4;
+    pthread_cond_t change5;
+    pthread_cond_t change6;
 
 } lift_data_type;
 
