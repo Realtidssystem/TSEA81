@@ -92,8 +92,10 @@ static void *passenger_thread(void *idptr)
         char buf[100];
         sprintf(buf, "Passenger #%d", id);
 	prctl(PR_SET_NAME,buf,0,0,0);
-	long long int max_timediff = 0;
-	while(1){
+	int iterations = 0;
+	unsigned long long int data[9999];
+//	long long int max_timediff = 0;
+	while(iterations<10000){
 		gettimeofday(&starttime, NULL);
 		int random_origin = get_random_value(id,N_FLOORS-1);
 		int random_to = get_random_value(id,N_FLOORS-1);
@@ -110,14 +112,25 @@ static void *passenger_thread(void *idptr)
 		timediff = (endtime.tv_sec*1000000ULL + endtime.tv_usec) -
 		           (starttime.tv_sec*1000000ULL + starttime.tv_usec);
 
-		if(timediff > max_timediff){
-			max_timediff = timediff;
-			printf("  Passenger id: %d\n", id);
-			printf("  time difference: %lld\n", max_timediff);
-		}
-
+	//	if(timediff > max_timediff){
+		//	max_timediff = timediff;
+	//		printf("  Passenger id: %d\n", id);
+		//	printf("  time difference: %lld\n", timediff);
+	//	}
+		data[iterations] = timediff;
+		iterations++;
 	}
+	unsigned long long int sum = 0;
+	unsigned long long int printsum = 0;
+	int i = 0;
+	for(i = 0; i < 10000; i++){
+		sum = sum + data[i];
+	}
+	printsum = sum/10000;
+	printf("  Passenger id: %d\n", id);
+	printf( "medeltid: %lld\n", printsum);
 	return NULL;
+
 }
 
 static void *user_thread(void *unused)

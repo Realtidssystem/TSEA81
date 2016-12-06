@@ -134,13 +134,15 @@ static void lift_process(void)
 		case LIFT_TRAVEL:
 
 			//    Update the Lift structure so that the person with the given ID is now present on the floor
+			for(int j =0; j < 127; j++){
 				for(i=0; i<MAX_N_PERSONS;i++){
-					if(Lift->persons_to_enter[m->from_floor][i].id == NO_ID){
-						Lift->persons_to_enter[m->from_floor][i].id= m->person_id;
-						Lift->persons_to_enter[m->from_floor][i].to_floor= m->to_floor;
+					if(Lift->persons_to_enter[m->from_floor[j]][i].id == NO_ID){
+						Lift->persons_to_enter[m->from_floor[j]][i].id= m->person_id;
+						Lift->persons_to_enter[m->from_floor[j]][i].to_floor= m->to_floor[j];
 						break;
 					}
 				}
+			}
 				//message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
 
 				break;
@@ -159,15 +161,16 @@ static void person_process(int id)
 	while(1){
 		gettimeofday(&starttime, NULL);
 		//    Generate a to and from floor
-		int to_floor = get_random_value(id,N_FLOORS-1);
-		int from_floor = get_random_value(id, N_FLOORS-1);
-		m.person_id = id;
+		int to_floor[127];
+		int from_floor[127];
+		for(int i = 0;i<127;i++){
+			to_floor[i] = get_random_value(id,N_FLOORS);
+			from_floor[i] = get_random_value(id,N_FLOORS);
+			}
 		m.to_floor = to_floor;
 		m.from_floor = from_floor;
+		m.person_id = id;
 		m.type = LIFT_TRAVEL;
-		while(m.to_floor == m.from_floor){
-			m.to_floor = get_random_value(id , N_FLOORS -1);
-		}
 		//    Send a LIFT_TRAVEL message to the lift process
 		message_send((char *) &m, sizeof(m), QUEUE_LIFT,0);
 		//    Wait for a LIFT_TRAVEL_DONE message
