@@ -17,6 +17,7 @@ long long int timediff;
 #define QUEUE_UI 0
 #define QUEUE_LIFT 1
 #define QUEUE_FIRSTPERSON 10
+#define NUMBER_OF_TRIPS 126
 
 // These variables keeps track of the process IDs of all processes
 // involved in the application so that they can be killed when the
@@ -79,10 +80,11 @@ static void lift_process(void)
 	lift_type Lift;
 	Lift = lift_create();
 	int change_direction, next_floor;
-
+	int every_person_trip_counter[MAX_N_PERSONS];
 	char msgbuf[4096];
 	while(1){
 		int i;
+		int j;
 		struct lift_msg reply;
 		struct lift_msg *m;
 		//message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0); // Draw the lift
@@ -108,9 +110,11 @@ static void lift_process(void)
 									int id = Lift->passengers_in_lift[i].id;
 									Lift->passengers_in_lift[i].id = NO_ID;
 	    						Lift->passengers_in_lift[i].to_floor = NO_FLOOR;
-									message_send((char *) &reply, sizeof(reply), QUEUE_FIRSTPERSON + id ,0);
+									if (every_person_trip_counter[id] < NUMBER_OF_TRIPS){
+										message_send((char *) &reply, sizeof(reply), QUEUE_FIRSTPERSON + id ,0);
+									}
 
-	    						}
+								}
 	    			}
 
 				//    Check if passengers want to enter elevator
@@ -134,11 +138,11 @@ static void lift_process(void)
 		case LIFT_TRAVEL:
 
 			//    Update the Lift structure so that the person with the given ID is now present on the floor
-			for(int j =0; j < 127; j++){
-				for(i=0; i<MAX_N_PERSONS;i++){
-					if(Lift->persons_to_enter[m->from_floor[j]][i].id == NO_ID){
-						Lift->persons_to_enter[m->from_floor[j]][i].id= m->person_id;
-						Lift->persons_to_enter[m->from_floor[j]][i].to_floor= m->to_floor[j];
+			for(j = 0; j < NUMBER_OF_TRIPS; j++){
+				for(i = 0; i < MAX_N_PERSONS; i++){
+					if(Lift->persons_to_enter[m->from_floor][i].id == NO_ID){
+						Lift->persons_to_enter[m->from_floor][i].id = m->person_id;
+						Lift->persons_to_enter[m->from_floor][i].to_floor = m->to_floor;
 						break;
 					}
 				}
@@ -161,18 +165,19 @@ static void person_process(int id)
 	while(1){
 		gettimeofday(&starttime, NULL);
 		//    Generate a to and from floor
-		int to_floor[127];
-		int from_floor[127];
-		for(int i = 0;i<127;i++){
+		int to_floor[NUMBER_OF_TRIPS];
+		int from_floor[NUMBER_OF_TRIPS];
+		int i;
+		for(i = 0; i < NUMBER_OF_TRIPS; i++){
 			to_floor[i] = get_random_value(id,N_FLOORS);
 			from_floor[i] = get_random_value(id,N_FLOORS);
-			}
-		m.to_floor = to_floor;
-		m.from_floor = from_floor;
-		m.person_id = id;
-		m.type = LIFT_TRAVEL;
+			m.to_floor = to_floor[i];
+			m.from_floor = from_floor[i];
+			m.person_id = id;
+			m.type = LIFT_TRAVEL;
 		//    Send a LIFT_TRAVEL message to the lift process
-		message_send((char *) &m, sizeof(m), QUEUE_LIFT,0);
+			message_send((char *) &m, sizeof(m), QUEUE_LIFT,0);
+		}
 		//    Wait for a LIFT_TRAVEL_DONE message
 		int len = message_receive(buf, 4096, QUEUE_FIRSTPERSON + id);
 
