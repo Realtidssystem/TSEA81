@@ -246,7 +246,7 @@ void delete_passenger(lift_type lift,int id, int floor){
 }
 /* enter_floor: makes a person with id id stand at floor floor */
  void enter_floor(
-    lift_type lift, int id, int floor)
+    lift_type lift, int id, int floor,int to_floor)
 {
 
     int i;
@@ -271,10 +271,48 @@ void delete_passenger(lift_type lift,int id, int floor){
 
     /* enter floor at index floor_index */
     lift->persons_to_enter[floor][floor_index].id = id;
-    lift->persons_to_enter[floor][floor_index].to_floor = NO_FLOOR;
+    lift->persons_to_enter[floor][floor_index].to_floor = to_floor;
 
 }
+/*void leave_for_vip(lift_type lift, person_data_type person,int floor){
+  int i;
+  int floor_index;
+  int free_spot;
+  int found1;
+  int found2;
 
+  
+  found1 = 0;
+  found2 = 0;
+  for (i = 0; i < MAX_N_PERSONS && !found1; i++)
+  {
+      if (lift->persons_to_enter[floor][i].id == NO_ID)
+      {
+          found1 = 1;
+          floor_index = i;
+      }
+  }
+  for (i = 0; i < MAX_N_PASSENGERS && !found2; i++)
+  {
+      if (lift->passengers_in_lift[i].id == NO_ID)
+      {
+          found2 = 1;
+          free_spot = i;
+      }
+  }
+
+  if (!found1)
+  {
+      lift_panic("cannot enter floor");
+  }
+  if (!found2)
+  {
+      lift_panic("cannot enter floor");
+  }
+  lift->passengers_in_lift[free_spot].id = NO_ID;
+  lift->persons_to_enter[floor][floor_index].id = person.id;
+}
+*/
 /* leave_floor: makes a person with id id at enter_floor leave
    enter_floor */
  void leave_floor(

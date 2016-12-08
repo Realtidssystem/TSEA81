@@ -9,7 +9,7 @@
 #define N_FLOORS 5
 
 /* maximum number of persons in the lift system */
-#define MAX_N_PERSONS 50
+#define MAX_N_PERSONS 10
 
 /* maximum number of passengers in lift */
 #define MAX_N_PASSENGERS 5
@@ -106,7 +106,8 @@ int leave_lift(lift_type lift,int floor, int id);
 void put_passenger_in_lift(lift_type lift,int id,int to_floor);
 void put_person_on_floor(lift_type lift,int id,int from_floor,int to_floor);
 void leave_floor(lift_type lift, int id, int enter_floor);
-void enter_floor(lift_type lift, int id, int floor);
+void enter_floor(lift_type lift, int id, int floor,int to_floor);
+void leave_for_vip(lift_type lift, person_data_type person,int floor);
 void delete_passenger(lift_type lift,int id, int floor);
 int n_passengers_to_leave(lift_type lift);
 int n_passengers_on_floor(lift_type lift);
