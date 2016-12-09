@@ -9,9 +9,10 @@
 #include "si_ui.h"
 #include "debug.h"
 #include <sys/time.h>
+#include <inttypes.h>
 struct timeval starttime;
 struct timeval endtime;
-long long int timediff;
+
 
 
 
@@ -85,7 +86,7 @@ static void *passenger_thread(void *idptr)
 	int *tmp = (int *) idptr;
 	int id = *tmp;
 	sem_post(&make_thread);
-
+	uint64_t timediff;
 
 
         // Sets a unique name shown in debuggers
@@ -93,7 +94,7 @@ static void *passenger_thread(void *idptr)
         sprintf(buf, "Passenger #%d", id);
 	prctl(PR_SET_NAME,buf,0,0,0);
 	int iterations = 0;
-	unsigned long long int data[9999];
+	uint64_t data[9999];
 //	long long int max_timediff = 0;
 	while(iterations<10000){
 		gettimeofday(&starttime, NULL);
@@ -109,26 +110,33 @@ static void *passenger_thread(void *idptr)
 		lift_travel(Lift, id, random_origin, random_to);
 		//usleep(50000);
 		gettimeofday(&endtime, NULL);
-		timediff = (endtime.tv_sec*1000000ULL + endtime.tv_usec) -
-		           (starttime.tv_sec*1000000ULL + starttime.tv_usec);
+		timediff = (endtime.tv_sec*100000ULL + endtime.tv_usec) -
+		           (starttime.tv_sec*100000ULL + starttime.tv_usec);
+							 //printf("%lld\n", timediff);
+
 
 	//	if(timediff > max_timediff){
 		//	max_timediff = timediff;
 	//		printf("  Passenger id: %d\n", id);
 		//	printf("  time difference: %lld\n", timediff);
 	//	}
+
 		data[iterations] = timediff;
 		iterations++;
 	}
-	unsigned long long int sum = 0;
-	unsigned long long int printsum = 0;
+uint64_t sum = 0;
+uint64_t printsum = 0;
 	int i = 0;
 	for(i = 0; i < 10000; i++){
+		if(data[i] < 0 || data[i] > 10000)
+		{
+			printf("%" PRIu64 "\n", data[i]);
+		}
 		sum = sum + data[i];
 	}
 	printsum = sum/10000;
 	printf("  Passenger id: %d\n", id);
-	printf( "medeltid: %lld\n", printsum);
+	printf( "medeltid: %" PRIu64 "\n", printsum);
 	return NULL;
 
 }
