@@ -392,7 +392,6 @@ void leave_for_vip(lift_type lift, person_data_type person, int floor){
   }
 
   /* enter floor at index floor_index */
-  leave_floor(lift, id, lift->floor);
   lift->passengers_in_lift[floor_index].id = id;
   lift->passengers_in_lift[floor_index].to_floor = to_floor;
 

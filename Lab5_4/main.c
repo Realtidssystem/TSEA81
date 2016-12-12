@@ -18,6 +18,7 @@ long long int timediff;
 #define QUEUE_LIFT 1
 #define QUEUE_FIRSTPERSON 10
 #define NUMBER_OF_TRIPS 120
+#define VIP_ID 5
 
 // These variables keeps track of the process IDs of all processes
 // involved in the application so that they can be killed when the
@@ -135,10 +136,11 @@ static void lift_process(void)
 					person_data_type person_to_leave = Lift->passengers_in_lift[0];
       			if (person.id != NO_ID && (n_passengers_in_lift(Lift) < MAX_N_PASSENGERS))
       			{
+							leave_floor(Lift, person.id, Lift->floor);
 							put_passenger_in_lift(Lift, person.id, person.to_floor);
       			}
 					/* Försök att få till en vip-person*/
-						else if (person.id != NO_ID && (n_passengers_in_lift(Lift) == MAX_N_PASSENGERS) && (person.id==0))
+						else if (person.id == VIP_ID && (n_passengers_in_lift(Lift) == MAX_N_PASSENGERS))
 						{
 							printf("Enter floor prio\n");
 							printf("%d\n",person_to_leave.id);
@@ -151,7 +153,7 @@ static void lift_process(void)
 				//    Move the lift
 			lift_next_floor(Lift, &next_floor, &change_direction);
 			lift_move(Lift, next_floor, change_direction);
-				//message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
+		//	message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
 			change_direction = 0;
 
 				break;
@@ -163,7 +165,7 @@ static void lift_process(void)
 				//printf("Enter floor in Lift travel\n");
 				//printf("%d\n",m->from_floor[0]);
 				enter_floor(Lift, m->person_id, m->from_floor[0], m->to_floor[0]);
-				//message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
+			//	message_send((char *) Lift, sizeof(*Lift), QUEUE_UI,0);
 
 				break;
 		default:
@@ -209,7 +211,7 @@ static void person_process(int id)
 		           (starttime.tv_sec*1000000ULL + starttime.tv_usec);
 
 	  data[iterations] = timediff;
-		printf("%d\n", iterations);
+	//	printf("%d\n", iterations);
 		iterations++;
 		//    Wait a little while
 		//sleep(5);
